@@ -49,13 +49,13 @@
   }
 
   function canSendToCurrentChat() {
-    if (DEV_MODE) return true;
-    if (!status.initialized || !status.inClient) return false;
-    if (typeof liff === 'undefined') return false;
-    return typeof liff.isApiAvailable === 'function'
-      ? liff.isApiAvailable('sendMessages')
-      : true;
-  }
+  if (DEV_MODE) return true;
+  if (!status.initialized || !status.inClient) return false;
+  if (typeof liff === 'undefined') return false;
+  if (typeof liff.sendMessages !== 'function') return false;
+
+  return true;
+}
 
   async function sendToCurrentChat(message) {
     if (DEV_MODE) {
