@@ -1,6 +1,6 @@
 /*
  * LINE / LIFF連携専用。
- * 本番利用時は LIFF_ID をLINE Developersで発行された値へ置き換えてください。
+ * LIFF ID: CHOICE
  */
 (() => {
   'use strict';
@@ -22,25 +22,22 @@
       return { ...status, devMode: true };
     }
 
-    if (LIFF_ID === 'YOUR_LIFF_ID') {
-      status.error = new Error('LIFF IDが未設定です。js/liff.js の LIFF_ID を設定してください。');
-      return { ...status, devMode: false };
-    }
-
     if (typeof liff === 'undefined') {
-      status.error = new Error('LIFF SDKを読み込めませんでした。通信環境を確認してください。');
+      status.error = new Error(
+        'LIFF SDKを読み込めませんでした。通信環境を確認してください。'
+      );
       return { ...status, devMode: false };
     }
 
     try {
       await liff.init({ liffId: LIFF_ID });
+
       status.initialized = true;
       status.inClient = liff.isInClient();
       status.loggedIn = liff.isLoggedIn();
-      status.context = liff.getContext?.() ?? null;
+      status.context =
+        typeof liff.getContext === 'function' ? liff.getContext() : null;
 
-      // 外部ブラウザではログイン自体は可能だが、同じトークへのsendMessagesはできない。
-      // 本アプリの目的は同一トーク送信なので、自動ログインは行わずUI上で案内する。
       return { ...status, devMode: false };
     } catch (error) {
       status.error = error;
@@ -48,14 +45,29 @@
     }
   }
 
+  /**
+   * 現在のLINEトークへ送信できる最低条件を確認する。
+   *
+   * 注意:
+   * liff.isApiAvailable('sendMessages') は使用しない。
+   * sendMessages は isApiAvailable() の対象API名ではないため、
+   * "Unexpected API name" の原因になる。
+   */
   function canSendToCurrentChat() {
-  if (DEV_MODE) return true;
-  if (!status.initialized || !status.inClient) return false;
-  if (typeof liff === 'undefined') return false;
-  if (typeof liff.sendMessages !== 'function') return false;
+    if (DEV_MODE) {
+      return true;
+    }
 
-  return true;
-}
+    if (!status.initialized || !status.inClient) {
+      return false;
+    }
+
+    if (typeof liff === 'undefined') {
+      return false;
+    }
+
+    return typeof liff.sendMessages === 'function';
+  }
 
   async function sendToCurrentChat(message) {
     if (DEV_MODE) {
@@ -63,29 +75,59 @@
       return { devMode: true };
     }
 
-    if (!canSendToCurrentChat()) {
-      throw new Error('このトークへのメッセージ送信を利用できません。LINEトークからLIFF URLを開き、chat_message.write権限を許可してください。');
+    if (!status.initialized) {
+      throw new Error(
+        'LIFFの初期化が完了していません。画面を開き直してください。'
+      );
     }
 
-    await liff.sendMessages([
-      {
-        type: 'text',
-        text: message,
-      },
-    ]);
+    if (!status.inClient) {
+      throw new Error(
+        'LINEトークからLIFF URLを開いてください。通常のブラウザからは同じトークへ送信できません。'
+      );
+    }
 
-    return { devMode: false };
+    if (typeof liff === 'undefined' || typeof liff.sendMessages !== 'function') {
+      throw new Error(
+        'LINEへの送信機能を利用できません。LIFFアプリの設定を確認してください。'
+      );
+    }
+
+    try {
+      await liff.sendMessages([
+        {
+          type: 'text',
+          text: message,
+        },
+      ]);
+
+      return { devMode: false };
+    } catch (error) {
+      console.error('liff.sendMessages failed:', error);
+      throw error;
+    }
   }
 
   function close() {
-    if (DEV_MODE) return;
-    if (typeof liff !== 'undefined' && status.inClient) {
+    if (DEV_MODE) {
+      return;
+    }
+
+    if (
+      typeof liff !== 'undefined' &&
+      status.inClient &&
+      typeof liff.closeWindow === 'function'
+    ) {
       liff.closeWindow();
     }
   }
 
   function getStatus() {
-    return { ...status, devMode: DEV_MODE, liffIdConfigured: LIFF_ID !== 'YOUR_LIFF_ID' };
+    return {
+      ...status,
+      devMode: DEV_MODE,
+      liffIdConfigured: LIFF_ID !== 'YOUR_LIFF_ID',
+    };
   }
 
   window.LineBridge = {
