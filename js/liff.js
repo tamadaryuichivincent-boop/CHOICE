@@ -5,7 +5,7 @@
 (() => {
   'use strict';
 
-  const LIFF_ID = 'YOUR_LIFF_ID';
+  const LIFF_ID = '2011807631-rmaV4vrl';
   const DEV_MODE = new URLSearchParams(location.search).get('dev') === '1';
 
   const status = {
