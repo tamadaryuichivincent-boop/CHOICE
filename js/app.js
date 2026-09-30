@@ -43,7 +43,7 @@
   const branchCopy = {
     home: {
       eyebrow: 'もう少し詳しく',
-      question: '今日はどんなお家時間ですか？',
+      question: '次の休みはどんなお家時間ですか？',
       help: '選択肢から選ぶか、自由に書いてください',
       placeholder: '例：お茶会・ゲーム会・家で過ごす',
     },
@@ -55,7 +55,7 @@
     },
     outing: {
       eyebrow: '',
-      question: '今日はどんなおでかけ？',
+      question: '次の休みはどんなおでかけ？',
       help: '恋人同士で楽しめるおでかけを選んでね',
       placeholder: '',
     },
@@ -117,7 +117,7 @@
         ${environmentBanner()}
         <div class="content start-content">
           <div class="hero-icon">${svgCalendar}</div>
-          <h1 class="start-title">なにする〜？<br>今日のデート候補を決めよう</h1>
+          <h1 class="start-title">なにする〜？<br>次の休みのデート候補を決めよう</h1>
           <p class="start-sub">ちょっとだけお話しを聞いて、<br>もっと楽しいデートにしよう</p>
           <div class="info-card">
             <div class="info-row">
@@ -173,7 +173,7 @@
 
     app.innerHTML = `
       <section class="screen">
-        ${header({ title: '今日のデートを決めよう', back: true })}
+        ${header({ title: '次の休みのデートを決めよう', back: true })}
         ${progress(2)}
         <div class="content">
           <div class="crumb"><span class="crumb-badge">◎</span><span>選択中&nbsp;&nbsp;${escapeHtml(mainLabel)}</span></div>
@@ -222,10 +222,10 @@
         ${environmentBanner()}
         <div class="content result-content">
           <div class="result-check">${svgCheck}</div>
-          <h1 class="result-title">今日のデートは？</h1>
+          <h1 class="result-title">次の休みのデートは？</h1>
           <p class="result-sub">恋人同士のデート結果を<br>LINEトークに送るよ</p>
           <div class="result-card">
-            <div class="result-label">今日のデート</div>
+            <div class="result-label">次の休みのデート</div>
             <div class="result-value">${escapeHtml(result)}</div>
             <div class="result-note">恋人同士で楽しめる<br>決定済みのデート案を<br>LINEトークに送るよ</div>
           </div>
@@ -283,7 +283,7 @@
     state.sending = true;
     renderResult();
 
-    const message = `今日のデート決定！✨\n「${result}」`;
+    const message = `次の休みのデート決定！✨\n「${result}」`;
 
     try {
       const response = await window.LineBridge.sendToCurrentChat(message);
